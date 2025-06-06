@@ -8,29 +8,6 @@ from business_logic import (
 )
 
 class LibraryApp(tk.Tk):
-    def doc_sach_csv(filename):
-        ds = []
-        with open(filename, mode='r', newline='', encoding='utf-8-sig') as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                ds.append(Sach(
-                    row['MaSach'],
-                    row['TenSach'],
-                    row['TacGia'],
-                    row['TheLoai'],
-                    int(row['SoLuong']),
-                    row['TinhTrang']
-                ))
-        return ds
-
-    def luu_sach_csv(filename, ds_sach):
-        with open(filename, mode='w', newline='', encoding='utf-8-sig') as f:
-            writer = csv.DictWriter(f, fieldnames=['MaSach','TenSach','TacGia','TheLoai','SoLuong','TinhTrang'])
-            writer.writeheader()
-            for s in ds_sach:
-                writer.writerow(s.__dict__)
-
-    # Tương tự cho bạn đọc và mượn trả:
     def doc_bandoc_csv(filename):
         ds = []
         with open(filename, mode='r', newline='', encoding='utf-8-sig') as f:
@@ -78,6 +55,14 @@ class LibraryApp(tk.Tk):
         super().__init__()
         self.title("Quản Lý Thư Viện")
         self.geometry("900x600")
+        main_frame = tk.Frame(self)
+        main_frame.pack(fill=tk.BOTH, expand=True)
+
+        self.frm_menu = tk.Frame(main_frame, width=150, bg="#f0f0f0")
+        self.frm_menu.pack(side=tk.LEFT, fill=tk.Y)
+        self.container = tk.Frame(main_frame)
+        self.container.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
+
         self.ds_sach = ds_sach
         self.ds_bd = ds_bd
         self.ds_muon = ds_muon
@@ -88,33 +73,35 @@ class LibraryApp(tk.Tk):
         self.show_frame("sach")
 
     def create_menu(self):
-        frm_menu = ttk.Frame(self)
-        frm_menu.pack(side=tk.LEFT, fill=tk.Y, padx=10, pady=10)
+        frm_menu = tk.Frame(self.frm_menu, bg="#f0f0f0")
+        frm_menu.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
 
         ttk.Label(frm_menu, text="MENU", font=("Arial", 16, "bold")).pack(pady=10)
         ttk.Button(frm_menu, text="Quản lý sách", width=20, command=lambda: self.show_frame("sach")).pack(pady=5)
         ttk.Button(frm_menu, text="Quản lý bạn đọc", width=20, command=lambda: self.show_frame("bandoc")).pack(pady=5)
         ttk.Button(frm_menu, text="Mượn - Trả sách", width=20, command=lambda: self.show_frame("muontra")).pack(pady=5)
-        ttk.Button(frm_menu, text="Danh sách đang mượn", width=20, command= lambda: self.show_frame("dangmuon")).pack(pady=5)
+        ttk.Button(frm_menu, text="Danh sách đang mượn", command=lambda: self.show_frame("dangmuon")).pack(pady=5)
         ttk.Button(frm_menu, text="Danh sách quá hạn", width=20, command=self.liet_ke_qua_han_ui).pack(pady=5)
-        ttk.Button(frm_menu, text="Thoát", width=20, command=self.quit).pack(pady=30)
+        ttk.Button(frm_menu, text="Thoát", width=20, command=self.quit).pack(pady=5)
 
     def create_frames(self):
-        container = ttk.Frame(self)
-        container.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=10, pady=10)
-
         # Quản lý sách
-        frm_sach = ttk.Frame(container)
+        frm_sach = ttk.Frame(self.container)
         self.frames["sach"] = frm_sach
         self.create_sach_frame(frm_sach)
 
+        # Danh sách đang mượn
+        frm_dangmuon = ttk.Frame(self.container)
+        self.frames["dangmuon"] = frm_dangmuon
+        self.create_dangmuon_frame(frm_dangmuon)
+        
         # Quản lý bạn đọc
-        frm_bd = ttk.Frame(container)
+        frm_bd = ttk.Frame(self.container)
         self.frames["bandoc"] = frm_bd
         self.create_bandoc_frame(frm_bd)
 
         # Mượn trả sách
-        frm_muontra = ttk.Frame(container)
+        frm_muontra = ttk.Frame(self.container)
         self.frames["muontra"] = frm_muontra
         self.create_muontra_frame(frm_muontra)
 
@@ -131,7 +118,6 @@ class LibraryApp(tk.Tk):
             self.load_ds_bd()
 
     # --- Quản lý sách ---
-
     def create_sach_frame(self, parent):
         # Thanh tìm kiếm
         search_frame = ttk.LabelFrame(parent, text="Tìm kiếm sách")
@@ -159,7 +145,7 @@ class LibraryApp(tk.Tk):
         for col in columns:
             self.tree_sach.heading(col, text=col)
             self.tree_sach.column(col, width=120)
-        self.tree_sach.pack(fill=tk.BOTH, expand=True, pady=10)
+        self.tree_sach.pack(fill=tk.BOTH, expand=True, pady=0.5, padx=10)
 
         frm_btn = ttk.Frame(parent)
         frm_btn.pack(pady=5)
@@ -217,6 +203,28 @@ class LibraryApp(tk.Tk):
         dialog = CapNhatSachDialog(self, self.ds_sach, ma_sach)
         self.wait_window(dialog)
         self.load_ds_sach()
+
+    def create_dangmuon_frame(self, parent):
+        ttk.Label(parent, text="Danh sách đang mượn", font=("Arial", 14, "bold")).pack(pady=10)
+
+        columns = ("MaPhieuMuon", "MSSV", "MaSach", "NgayMuon", "NgayHenTra", "TinhTrangMuon")
+        self.tree_dangmuon = ttk.Treeview(parent, columns=columns, show="headings")
+        for col in columns:
+            self.tree_dangmuon.heading(col, text=col)
+            self.tree_dangmuon.column(col, width=120)
+        self.tree_dangmuon.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+        ttk.Button(parent, text="Làm mới", command=self.load_ds_dang_muon).pack(pady=5)
+        self.load_ds_dang_muon()
+
+    def load_ds_dang_muon(self):
+        self.tree_dangmuon.delete(*self.tree_dangmuon.get_children())
+        for m in self.ds_muon:
+            ngay_tra = (m.NgayTraThucTe or "").strip().lower()
+            if ngay_tra in ["", "chưa trả", "none", "null"]:
+                self.tree_dangmuon.insert("", tk.END, values=(
+                    m.MaPhieuMuon, m.MSSV, m.MaSach, m.NgayMuon, m.NgayHenTra, m.TinhTrangMuon
+                ))
 
     # --- Quản lý bạn đọc ---
     def create_bandoc_frame(self, parent):
@@ -281,13 +289,6 @@ class LibraryApp(tk.Tk):
     def liet_ke_qua_han_ui(self):
         dialog = LietKeQuaHanDialog(self, self.ds_muon)
         self.wait_window(dialog)
-
-
-    # Show frame helper
-    def hide_all_frames(self):
-        for frame in self.frames.values():
-            frame.pack_forget()
-
 
 # -------- Dialogs ----------
 class ThemSachDialog(tk.Toplevel):
@@ -426,7 +427,9 @@ class MuonSachDialog(tk.Toplevel):
             if not any(b.MSSV == mssv for b in self.ds_bd):
                 messagebox.showerror("Lỗi", f"Không tìm thấy bạn đọc MSSV {mssv}")
                 return
-            sach = next((s for s in self.ds_sach if s.MaSach == ma_sach), None)
+            ma_sach = ma_sach.strip().lower()
+            sach = next((s for s in self.ds_sach if s.MaSach.strip().lower() == ma_sach), None)
+
             if not sach:
                 messagebox.showerror("Lỗi", f"Không tìm thấy sách mã {ma_sach}")
                 return
