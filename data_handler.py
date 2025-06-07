@@ -30,7 +30,7 @@ def doc_file_csv(ten_file: str, lop: Type) -> List[Any]:
                     )
                 elif lop == MuonTra:
                     ngay_tra = row.get('NgayTraThucTe', '').strip()
-                    tinh_trang_muon = "Dang muon" if not ngay_tra else "Da tra"
+                    tinh_trang_muon = "Đang mượn" if not ngay_tra else "Đã trả"
 
                     obj = MuonTra(
                         ma_phieu=row['MaPhieuMuon'],
@@ -99,21 +99,21 @@ def luu_file_csv(ds: List[Any], ten_file: str, lop: Type):
 # Các hàm xử lý tầng 1 - sách
 def tao_sach() -> Sach:
     print("Nhập thông tin sách mới:")
-    ma_sach = input("Mã sách: ").strip()
-    ten_sach = input("Tên sách: ").strip()
-    tac_gia = input("Tác giả: ").strip()
-    the_loai = input("Thể loại: ").strip()
+    ma_sach = input("Mã sách: ").strip().lower()
+    ten_sach = input("Tên sách: ").strip().lower()
+    tac_gia = input("Tác giả: ").strip().lower()
+    the_loai = input("Thể loại: ").strip().lower()
     so_luong = int(input("Số lượng: ").strip())
-    tinh_trang = input("Tình trạng (Con/Het): ").strip()
+    tinh_trang = input("Tình trạng: ").strip().lower() or "con"  
     return Sach(ma_sach, ten_sach, tac_gia, the_loai, so_luong, tinh_trang)
-
 
 def kiem_tra_trung_ma_sach(ma_sach: str, ds_sach: List[Sach]) -> bool:
     return any(s.MaSach == ma_sach for s in ds_sach)
 
 def tim_sach_theo_ma(ma_sach: str, ds_sach: List[Sach]) -> Sach | None:
+    ma_sach = ma_sach.strip().lower()
     for s in ds_sach:
-        if s.MaSach == ma_sach:
+        if s.MaSach.strip().lower() == ma_sach:
             return s
     return None
 
@@ -138,7 +138,7 @@ def cap_nhat_thong_tin_sach(ma_sach: str, ds_sach: List[Sach]) -> bool:
 
 def xoa_sach(ma_sach: str, ds_sach: List[Sach]) -> bool:
     for i, s in enumerate(ds_sach):
-        if s.MaSach == ma_sach:
+        if s.MaSach.strip().lower() == ma_sach:
             del ds_sach[i]
             return True
     return False
@@ -158,10 +158,8 @@ def tao_ban_doc() -> BanDoc:
     ngay_sinh = input("Ngày sinh (dd/mm/yyyy): ").strip()
     return BanDoc(mssv, ho_ten, gioi_tinh, ngay_sinh)
 
-
 def kiem_tra_trung_ma_bd(mssv: str, ds_bd: List[BanDoc]) -> bool:
     return any(b.MSSV == mssv for b in ds_bd)
-
 
 def xoa_ban_doc(mssv: str, ds_bd: List[BanDoc]) -> bool:
     for i, b in enumerate(ds_bd):
@@ -170,11 +168,11 @@ def xoa_ban_doc(mssv: str, ds_bd: List[BanDoc]) -> bool:
             return True
     return False
 
-
 # Các hàm xử lý tầng 1 - mượn trả
 def muon_sach(mssv: str, ma_sach: str, ds_sach: List[Sach], ds_muon: List[MuonTra], ma_phieu: str,
               ngay_muon: str, ngay_hen_tra: str) -> bool:
-    sach = tim_sach_theo_ma(ma_sach, ds_sach)
+    ma_sach = ma_sach.strip().lower()
+    sach = next((s for s in ds_sach if s.MaSach.strip().lower() == ma_sach), None)
     if sach is None or sach.SoLuong <= 0:
         return False
     sach.SoLuong -= 1

@@ -140,7 +140,7 @@ class LibraryApp(tk.Tk):
 
         ttk.Label(parent, text="Quản lý sách", font=("Arial", 18, "bold")).pack(pady=10)
 
-        columns = ("MaSach", "TenSach", "TacGia", "TheLoai", "SoLuong", "TinhTrang")
+        columns = ("Mã Sách", "Tên Sách", "Tác Giả", "Thể Loại", "Số Lượng", "Tình Trạng")
         self.tree_sach = ttk.Treeview(parent, columns=columns, show="headings")
         for col in columns:
             self.tree_sach.heading(col, text=col)
@@ -207,7 +207,7 @@ class LibraryApp(tk.Tk):
     def create_dangmuon_frame(self, parent):
         ttk.Label(parent, text="Danh sách đang mượn", font=("Arial", 14, "bold")).pack(pady=10)
 
-        columns = ("MaPhieuMuon", "MSSV", "MaSach", "NgayMuon", "NgayHenTra", "TinhTrangMuon")
+        columns = ("Mã Phiếu Mượn", "MSSV", "Mã Sách", "Ngày Mượn", "Ngày Hẹn Trả", "Tình Trạng Mượn")
         self.tree_dangmuon = ttk.Treeview(parent, columns=columns, show="headings")
         for col in columns:
             self.tree_dangmuon.heading(col, text=col)
@@ -230,7 +230,7 @@ class LibraryApp(tk.Tk):
     def create_bandoc_frame(self, parent):
         ttk.Label(parent, text="Quản lý bạn đọc", font=("Arial", 18, "bold")).pack(pady=10)
 
-        columns = ("MSSV", "HoTen", "GioiTinh", "NgaySinh")
+        columns = ("MSSV", "Họ Tên", "Giới Tính", "Ngày Sinh")
         self.tree_bd = ttk.Treeview(parent, columns=columns, show="headings")
         for col in columns:
             self.tree_bd.heading(col, text=col)
